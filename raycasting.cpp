@@ -27,11 +27,44 @@ void drop_ppm_image(const std::string filename, const std::vector<uint32_t>& ima
 	ofs.close();
 }
 
+void draw_rect(std::vector<uint32_t>& img, const size_t img_w, const size_t img_h, const size_t x, const size_t y, const size_t w, const size_t h, const uint32_t color) {
+	for (size_t i = 0; i < w; i++) {
+		for (size_t j = 0; j < h; j++) {
+			size_t cx = x + i;
+			size_t cy = y + j;
+			assert(cx < img_w && cy < img_h);
+			img[cx + cy * img_w] = color;
+		}
+	}
+}
 
 int main() {
 	const size_t win_w = 512;
 	const size_t win_h = 512;
 	std::vector<uint32_t> framebuffer(win_w * win_h, 255);
+
+	const size_t map_w = 16;
+	const size_t map_h = 16;
+	const char map[] =  "1111111111111111"\
+						"1000010000000001"\
+						"1000010010000001"\
+						"1000010011100001"\
+						"1000010000100001"\
+						"1000011111100001"\
+						"1000000000000001"\
+						"1000000000000001"\
+						"1000000000000001"\
+						"1000000000000001"\
+						"1000000000000001"\
+						"1000001111110001"\
+						"1000001000010001"\
+						"1000000000000001"\
+						"1000000000000001"\
+						"1111111111111111";
+	assert(sizeof(map) == map_w * map_h + 1);
+
+	float player_x = 2.5;
+	float player_y = 2.5;
 
 	for (size_t j = 0; j < win_h; j++) {
 		for (size_t i = 0; i < win_w; i++) {
@@ -41,6 +74,20 @@ int main() {
 			framebuffer[i + j * win_w] = pack_color(r, g, b);
 		}
 	}
+
+	const size_t rect_w = win_w / map_w;
+	const size_t rect_h = win_h / map_h;
+
+	for (size_t j = 0; j < map_h; j++) {
+		for (size_t i = 0; i < map_w; i++) {
+			if (map[i + j * map_w] == '0') continue;
+			size_t rect_x = i * rect_w;
+			size_t rect_y = j * rect_h;
+			draw_rect(framebuffer, win_w, win_h, rect_x, rect_y, rect_w, rect_h, pack_color(0, 255, 0));
+		}
+	}
+
+	draw_rect(framebuffer, win_w, win_h, player_x * rect_w, player_y * rect_w, 5, 5, pack_color(255, 255, 255));
 
 	drop_ppm_image("./out.ppm", framebuffer, win_w, win_h);
 
