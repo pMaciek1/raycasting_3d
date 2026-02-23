@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -65,8 +67,10 @@ int main() {
 
 	float player_x = 2.5;
 	float player_y = 2.5;
+	float player_dr = 0.73; //dir of the player
+	const float fov = M_PI / 3.;
 
-	for (size_t j = 0; j < win_h; j++) {
+	for (size_t j = 0; j < win_h; j++) { //creating gradient rect
 		for (size_t i = 0; i < win_w; i++) {
 			uint8_t r = 255 * j / float(win_h);
 			uint8_t g = 0;
@@ -78,7 +82,7 @@ int main() {
 	const size_t rect_w = win_w / map_w;
 	const size_t rect_h = win_h / map_h;
 
-	for (size_t j = 0; j < map_h; j++) {
+	for (size_t j = 0; j < map_h; j++) { //drawing over the gradient (walls)
 		for (size_t i = 0; i < map_w; i++) {
 			if (map[i + j * map_w] == '0') continue;
 			size_t rect_x = i * rect_w;
@@ -88,6 +92,19 @@ int main() {
 	}
 
 	draw_rect(framebuffer, win_w, win_h, player_x * rect_w, player_y * rect_w, 5, 5, pack_color(255, 255, 255));
+
+	for (size_t i = 0; i < win_w; i++) { //drawing cone (view of the player) / 512 rays
+		float angle = player_dr - fov / 2 + fov * i / float(win_w);
+		for (float c = 0; c < 22.6; c += .05) { // 22.6 bcs that's the diagonal (max distce)
+			float cx = player_x + c * cos(angle); //drawing one line until it hits a wall
+			float cy = player_y + c * sin(angle);
+			if (map[int(cx) + int(cy) * map_w] != '0') break;
+
+			size_t pix_x = cx * rect_w;
+			size_t pix_y = cy * rect_h;
+			framebuffer[pix_x + pix_y * win_w] = pack_color(255, 255, 255);
+		}
+	}
 
 	drop_ppm_image("./out.ppm", framebuffer, win_w, win_h);
 
