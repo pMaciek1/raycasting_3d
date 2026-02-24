@@ -41,7 +41,7 @@ void render(FrameBuffer& fb, Map& map, Player& player) {
 		}
 	}
 }
-
+/*
 int main() {
 
 	FrameBuffer fb{ 1024, 512, std::vector<uint32_t>(1024 * 512, pack_color(255,255,255)) };
@@ -58,3 +58,4 @@ int main() {
 
 	return 0;
 }
+*/
